@@ -1,0 +1,31 @@
+library(dplyr)
+library(sas7bdat)
+library(tidyr)
+Chrome=read.table("~/Desktop/ChrENGene.txt")
+colnames(Chrome)<-c('CHR','gene','gene_name')
+Chrome<-transform(Chrome, CHR=as.numeric(CHR))
+x<-scan("~/Desktop/predixcan/DB3.txt",what="",sep="\n")
+x<-strsplit(x,"[[:space:]]+")
+for(item in x){
+  s1="~/Desktop/predixcan/"
+  s2=item
+  s3="/association.txt"
+  path=paste(s1,s2,s3,sep="")
+  Tiss=read.table(path,header=T)
+  Tissu=na.omit(Tiss)
+  Tissue<-left_join(Tissu,Chrome, by='gene')
+  s1="Downloads/Pred_assoc/"
+  s3=".txt"
+  path=paste(s1,s2,s3,sep="")
+  Org=read.table(path,header=T)
+  Org=na.omit(Org)
+  Org2=filter(Org,p<=0.05)
+  Tissue2=Tissue[Tissue$gene %in% Org2$gene,]
+  Tissue2$log=-log10(Tissue2$p)
+  Tissue2=arrange(Tissue2,desc(log))
+  Tissue2=Tissue2[1:10,]
+  s1="~/Desktop/predixcan/Linkage/"
+  path=paste(s1,s2,s3,sep="")
+  write.table(Tissue2,path,quote=FALSE,col.names=TRUE)
+
+}
