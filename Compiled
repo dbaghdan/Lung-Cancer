@@ -1,0 +1,62 @@
+library(dplyr)
+library(sas7bdat)
+library(tidyr)
+Position=read.table("~/mount/wheelerlab1/Data/PrediXcan_db/GTEx-2015-11-13/gencode.v18.genes.patched_contigs.summary.protein")
+colnames(Position)<-c('Chrome','Strand','Start','Stop','Ensemble','Genex','Function','Status')
+Chrome=read.table("~/Desktop/ChrENGene!MXY.txt")
+colnames(Chrome)<-c('CHR','Ensemble','Gene')
+Chrome<-transform(Chrome, CHR=as.numeric(CHR))
+Position<-left_join(Position,Chrome, by='Ensemble')
+keep<-c('CHR','Start','Stop','Ensemble','Gene')
+Position=Position[keep]
+
+DGN=read.table("~/Desktop/predixcan/DGN-WB-unscaled_0.5.db/association_0.01.txt",header=T)
+colnames(DGN)[1]<-"Gene"
+LCCompiled<-left_join(DGN,Position, by='Gene')
+keep<-c('CHR','Start','Stop','Ensemble','Gene','p')
+LCCompiled=LCCompiled[keep]
+LCCompiled$Tissue<-rep("DGN", nrow(LCCompiled))
+
+x<-scan("~/Desktop/predixcan/dbs.txt",what="",sep="\n")
+x<-strsplit(x,"[[:space:]]+")
+y<-scan("~/Desktop/predixcan/dbshort.txt",what="",sep="\n")
+y<-strsplit(y,"[[:space:]]+")
+z=1
+for(item in x){
+  s1="~/Desktop/predixcan/"
+  s3="/association_0.01.txt"
+  s2=item
+  path=paste(s1,s2,s3,sep="")
+  pile=read.table(path,header = T)
+  colnames(pile)[1]<-"Ensemble"
+  pile<-left_join(pile,Position, by='Ensemble')
+  pile=pile[keep]
+  pile$Tissue<-rep(y[z], nrow(pile))
+  LCCompiled<-rbind(LCCompiled, pile)
+  z=z+1
+}
+
+DGN=read.table("~/Downloads/Pred_assoc/0.001_DGNassociation.txt",header=T)
+colnames(DGN)[1]<-"Gene"
+BCCompiled<-left_join(DGN,Position, by='Gene')
+keep<-c('CHR','Start','Stop','Ensemble','Gene','p')
+BCCompiled=BCCompiled[keep]
+BCCompiled$Tissue<-rep("DGN", nrow(BCCompiled))
+
+x<-scan("~/Desktop/predixcan/dbreast.txt",what="",sep="\n")
+x<-strsplit(x,"[[:space:]]+")
+y<-scan("~/Desktop/predixcan/dbshortbreast.txt",what="",sep="\n")
+y<-strsplit(y,"[[:space:]]+")
+z=1
+for(item in x){
+  s1="~/Downloads/Pred_assoc/0.001_"
+  s2=item
+  path=paste(s1,s2,sep="")
+  pile=read.table(path,header = T)
+  colnames(pile)[1]<-"Ensemble"
+  pile<-left_join(pile,Position, by='Ensemble')
+  pile=pile[keep]
+  pile$Tissue<-rep(y[z], nrow(pile))
+  BCCompiled<-rbind(BCCompiled, pile)
+  z=z+1
+}
