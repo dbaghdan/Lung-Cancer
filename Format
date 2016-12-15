@@ -1,0 +1,82 @@
+library(dplyr)
+library(sas7bdat)
+library(tidyr)
+Tiss=read.table("~/Desktop/predixcan/DGN-WB-unscaled_0.5.db/association_0.01.txt",header=T)
+Tissu=na.omit(Tiss)
+Chrome=read.table("~/Desktop/ChrENGene!MXY.txt")
+colnames(Tissu)[1]<-"genename"
+colnames(Chrome)<-c('CHR','gene','genename')
+Chrome<-transform(Chrome, CHR=as.numeric(CHR))
+Tissue<-left_join(Tissu,Chrome, by='genename')
+Tissue$Tissue_type<- rep("LC_DGN",nrow(Tissue))
+Tissue=filter(Tissue,p<=0.05)
+keep<-c("genename","beta","z","p","se.beta.","CHR","gene","Tissue_type")
+Tissue=Tissue[keep]
+keep<-c("gene","CHR")
+Chrome=Chrome[keep]
+x<-scan("~/Desktop/predixcan/dbs.txt",what="",sep="\n")
+x<-strsplit(x,"[[:space:]]+")
+for(item in x){
+  s1="~/Desktop/predixcan/"
+  s2=item
+  s3="/association_0.01.txt"
+  path=paste(s1,s2,s3,sep="")
+  Tiss=read.table(path,header=T)
+  Tissu=na.omit(Tiss)
+  Tissu<-left_join(Tissu,Chrome, by='gene')
+  s4="LC_"
+  name=paste(s4,s2,sep="")
+  Tissu$Tissue_type<- rep(name,nrow(Tissu))
+  Tissu=filter(Tissu,p<=0.05)
+  keep<-c("genename","beta","z","p","se.beta.","CHR","gene","Tissue_type")
+  Tissu=Tissu[keep]
+  Tissue<-rbind(Tissue,Tissu)
+}
+Tiss=read.table("Downloads/Pred_assoc/DGN-WB-unscaled_0.5.db.txt",header=T)
+Tissu=na.omit(Tiss)
+Chrome=read.table("~/Desktop/ChrENGene!MXY.txt")
+colnames(Tissu)[1]<-"genename"
+colnames(Chrome)<-c('CHR','gene','genename')
+Chrome<-transform(Chrome, CHR=as.numeric(CHR))
+Tissu<-left_join(Tissu,Chrome, by='genename')
+Tissu$Tissue_type<- rep("BC_DGN",nrow(Tissu))
+Tissu=filter(Tissu,p<=0.05)
+keep<-c("genename","beta","z","p","se.beta.","CHR","gene","Tissue_type")
+Tissu=Tissu[keep]
+Tissue<-rbind(Tissue,Tissu)
+x<-scan("~/Desktop/predixcan/DB4.txt",what="",sep="\n")
+x<-strsplit(x,"[[:space:]]+")
+for(item in x){
+  s1="Downloads/Pred_assoc/"
+  s3=".txt"
+  s2=item
+  path=paste(s1,s2,s3,sep="")
+  Tiss=read.table(path,header=T)
+  Tissu=na.omit(Tiss)
+  Tissu<-left_join(Tissu,Chrome, by='gene')
+  s4="BC_"
+  name=paste(s4,s2,sep="")
+  Tissu$Tissue_type<- rep(name,nrow(Tissu))
+  Tissu=filter(Tissu,p<=0.05)
+  keep<-c("genename","beta","z","p","se.beta.","CHR","gene","Tissue_type")
+  Tissu=Tissu[keep]
+  Tissue<-rbind(Tissue,Tissu)
+}
+x<-scan("~/Desktop/predixcan/DB5.txt",what="",sep="\n")
+x<-strsplit(x,"[[:space:]]+")
+for(item in x){
+  s1="~/mount/carlos/NHS_BC/PrediXcan/missing_tissues/"
+  s3="/association.txt"
+  s2=item
+  path=paste(s1,s2,s3,sep="")
+  Tiss=read.table(path,header=T)
+  Tissu=na.omit(Tiss)
+  Tissu<-left_join(Tissu,Chrome, by='gene')
+  s4="BC_"
+  name=paste(s4,s2,sep="")
+  Tissu$Tissue_type<- rep(name,nrow(Tissu))
+  Tissu=filter(Tissu,p<=0.05)
+  keep<-c("genename","beta","z","p","se.beta.","CHR","gene","Tissue_type")
+  Tissu=Tissu[keep]
+  Tissue<-rbind(Tissue,Tissu)
+}
