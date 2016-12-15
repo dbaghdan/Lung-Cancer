@@ -1,0 +1,38 @@
+library(dplyr)
+library(ggplot2)
+Adipose=read.table("~/Desktop/predixcan/TW_Adipose-Subcutaneous_elasticNet0_0.5.db/predicted_expression.txt",header=T)
+keep<-c("IID","ENSG00000117481.5")
+WholeBlood=WholeBlood[keep]
+WholeBlood<-transform(WholeBlood, IID=as.character(IID))
+phenotype=read.table("~/Desktop/predixcan/Phenotypes.txt",header=T)
+phenotype<-transform(phenotype, IID=as.character(IID))
+WholeBlood=left_join(WholeBlood,phenotype,by='IID')
+WholeBlood=na.omit(WholeBlood)
+WholeBlood$Tissue<-rep("LC Whole Blood", nrow(WholeBlood))
+Combined<-rbind(Combined, WholeBlood)
+
+DGNBC=DGNBC[keep]
+DGNBC<-transform(DGNBC, IID=as.character(IID))
+DGNBC=left_join(DGNBC,phenotypeBC,by='IID')
+DGNBC=na.omit(DGNBC)
+DGNBC$Tissue<-rep("BC DGN", nrow(DGNBC))
+DGNBC$X<-rep(0,nrow(DGNBC))
+DGNBC$Y<-rep(0,nrow(DGNBC))
+DGNBC$Z<-rep(0,nrow(DGNBC))
+Combined<-rbind(Combined, DGNBC)
+
+boxplot(split(Adipose[,2],Adipose[,7]))
+ggplot(Adipose,aes(factor(Case_Control),ENSG00000117481.5))+geom_boxplot() + geom_jitter()
+p<-ggplot(Combined,aes(factor(Case_Control),ENSG00000117481.5))+geom_boxplot()+geom_jitter(alpha=1/5,col='blue')
+dat <- ggplot_build(p)$data[[1]]
+p + geom_segment(data=dat, aes(x=xmin, xend=xmax,y=middle, yend=middle), colour="red", size=2)
+
+
+d<-ggplot(Combined,aes(factor(Case_Control),ENSG00000117481.5))+geom_boxplot()+geom_jitter(alpha=1/5,col='blue')
+dd<-d+facet_wrap(~Tissue, ncol=9)
+dat <- ggplot_build(dd)$data[[1]]
+tissuelist=c('BC Adipose','BC Adipose','BC Breast','BC Breast','BC Coronary','BC Coronary','BC DGN', 'BC DGN', 'BC Esophagus','BC Esophagus','BC Left Ventricle', 'BC Left Ventricle','BC Testis','BC Testis', 'BC Tibial','BC Tibial','BC Whole Blood', 'BC Whole Blood', 'LC Adipose','LC Adipose','LC Breast','LC Breast','LC Coronary','LC Coronary','LC DGN', 'LC DGN', 'LC Esophagus','LC Esophagus','LC Left Ventricle','LC Left Ventricle', 'LC Testis', 'LC Testis', 'LC Tibial','LC Tibial', 'LC Whole Blood', 'LC Whole Blood')
+a<-cbind(dat,tissuelist)
+dat<-mutate(a,Tissue=tissuelist)
+dd + geom_segment(data=dat, aes(x=xmin, xend=xmax,y=middle, yend=middle), colour="red", size=2)
+
