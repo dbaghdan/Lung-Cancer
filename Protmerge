@@ -1,0 +1,49 @@
+library(dplyr)
+library(sas7bdat)
+library(tidyr)
+path="~/Desktop/predixcan/DGN-WB-unscaled_0.5.db/association.txt"
+Tiss=read.table(path,header=T)
+Tissu=na.omit(Tiss)
+colnames(Tissu)<-c('Gene.name','beta','z','p','se.beta')
+Chrome=read.table("~/Desktop/ChrENGene.txt")
+colnames(Chrome)<-c('CHR','gene','Gene.name')
+Chrome<-transform(Chrome, CHR=as.numeric(CHR))
+Tissue<-left_join(Tissu,Chrome, by='Gene.name')
+Tissue$Tissue_type<- rep("DGN",nrow(Tissue))
+path="Downloads/Pred_assoc/DGN-WB-unscaled_0.5.db.txt"
+Org=read.table(path,header=T)
+Org=na.omit(Org)
+Org2=filter(Org,p<=0.05)
+colnames(Org2)<-c('Gene.name','beta','z','p','se.beta')
+Comp=Tissue[Tissue$Gene.name %in% Org2$Gene.name,]
+Comp$log=-log10(Comp$p)
+Comp=arrange(Comp,desc(log))
+Comp=Comp[1:10,]
+x<-scan("~/Desktop/predixcan/DB4.txt",what="",sep="\n")
+x<-strsplit(x,"[[:space:]]+")
+for(item in x){
+  s1="~/Desktop/predixcan/"
+  s2=item
+  s3="/association.txt"
+  path=paste(s1,s2,s3,sep="")
+  Tiss=read.table(path,header=T)
+  Tissu=na.omit(Tiss)
+  colnames(Tissu)<-c('Gene.name','beta','z','p','se.beta')
+  Tissue<-left_join(Tissu,Chrome, by='Gene.name')
+  Tissue$Tissue_type<- rep("DGN",nrow(Tissue))
+  s1="Downloads/Pred_assoc/"
+  s3=".txt"
+  path=paste(s1,s2,s3,sep="")
+  Org=read.table(path,header=T)
+  Org=na.omit(Org)
+  Org2=filter(Org,p<=0.05)
+  colnames(Org2)<-c('Gene.name','beta','z','p','se.beta')
+  Tissue2=Tissue[Tissue$Gene.name %in% Org2$Gene.name,]
+  Tissue2$log=-log10(Tissue2$p)
+  Tissue2=arrange(Tissue2,desc(log))
+  Tissue2=Tissue2[1:10,]
+  Tissue2$Tissue_type<- rep(item,nrow(Tissue2))
+  Comp<-rbind(Comp,Tissue2)
+}
+Compilation<-left_join(Comp,cancer1, by='Gene.name')
+
