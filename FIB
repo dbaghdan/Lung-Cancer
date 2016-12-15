@@ -1,0 +1,16 @@
+print(ggplot(Tissue, aes(x=CHR, y=-log10(p),color=CHR)) +geom_point(aes(size = 10,)) + geom_text(aes(label=ifelse(-log10(p)>4.7,as.character(Full),'')),hjust= 1.2, vjust=0) + ggtitle("Manhattan Plot Tissue") + xlab("Chromosome") + ylab("-log10(p)") + theme_set(theme_gray(base_size = 18))+ theme(legend.position="none") + scale_x_continuous(breaks=seq(1,25,1)))
+
+
+FIB=read.table("~/Desktop/predixcan/TW_Pituitary_elasticNet0_0.5.db/association_0.01.txt",header=T)
+colnames(FIB)[1]<-"Ensemble"
+FIB<-left_join(FIB,Position, by='Ensemble')
+keep<-c('CHR','Start','Stop','Ensemble','Gene','p')
+FIB=FIB[keep]
+colnames(FIB)[colnames(FIB)=="Start"] <- "BP"
+colnames(FIB)[colnames(FIB)=="p"] <- "P"
+colnames(FIB)[colnames(FIB)=="Gene"] <- "SNP"
+FIB=na.omit(FIB)
+
+#FIB$ID = paste(FIB$SNP, FIB$Tissue, sep="_")
+manhattan(FIB, col=c("Blue","Green"))
+text(label=ifelse((-log10(FIB$P))>4.7,as.character(FIB$SNP),''), x=as.numeric(1.9*FIB$CHR*FIB$BP),y=-log10(as.numeric(as.character(FIB$P))),cex=0.5)
