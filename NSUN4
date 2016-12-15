@@ -1,0 +1,29 @@
+library(dplyr)
+library(sas7bdat)
+library(tidyr)
+NSUN4=read.table("~/mount/danny/NSUN4/Output/Adipose.txt",header=F)
+NSUN4$Tissue <- rep("Adipose",nrow(NSUN4))
+colnames(NSUN4)[1]<-"DB"
+NSUN4<-within(NSUN4, DB<-data.frame(do.call('rbind', strsplit(as.character(DB), '|', fixed=TRUE))))
+NSUN4$RSID=NSUN4$DB$X1
+NSUN4$Score=NSUN4$DB$X3
+NSUN4$SNP1=NSUN4$DB$X4
+NSUN4$SNP2=NSUN4$DB$X5
+keep<-c('Tissue', 'RSID', 'Score' , 'SNP1' , 'SNP2')
+NSUN4=NSUN4[keep]
+NSUN4$Score2=as.numeric(levels(NSUN4$Score))[NSUN4$Score]
+NSUN4$ABS=abs(NSUN4$Score2)
+NSUN4<-NSUN4[rev(order(NSUN4$ABS)),]
+NSUN4=NSUN4[1:10,]
+x<-scan("~/Desktop/predixcan/NSUN4list.txt",what="",sep="\n")
+x<-strsplit(x,"[[:space:]]+")
+for(item in x){
+  s1="~/mount/danny/NSUN4/Output/"
+  s2=item
+  s3=".txt"
+  path=paste(s1,s2,s3,sep="")
+  Tiss=read.table(path,header=F)
+  colnames(Tiss)[1]<-"DB"
+  Tiss$Tissue <- rep(item,nrow(Tiss))
+  NSUN4<-rbind(NSUN4,Tiss)
+}
